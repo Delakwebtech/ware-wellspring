@@ -118,7 +118,7 @@ function ReceiveDialog({ inventory, suppliers, onClose }: { inventory: Inv[]; su
       if (qty <= 0) throw new Error("Quantity must be positive");
       const { error } = await supabase.rpc("record_stock_receipt", {
         _inventory_id: invId,
-        _supplier_id: supId || "",
+        _supplier_id: (supId || null) as unknown as string,
         _quantity: qty,
         _unit_cost: cost,
         _reference: ref,
