@@ -100,16 +100,8 @@ function DamageDialog({ inventory, onClose }: { inventory: Inv[]; onClose: () =>
     mutationFn: async () => {
       if (!item) throw new Error("Pick an item");
       if (qty < 1 || qty > item.quantity) throw new Error("Invalid quantity");
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not signed in");
-      const cost_loss = Number(item.purchase_price) * qty;
-      const { error } = await supabase.from("damages").insert({
-        inventory_id: item.id, name: item.name, category: item.category, quantity: qty, reason,
-        cost_loss, store_id: item.store_id, branch_id: item.branch_id, reported_by: user.id,
-      });
+      const { error } = await supabase.rpc("log_damage", { _inventory_id: item.id, _quantity: qty, _reason: reason });
       if (error) throw error;
-      const { error: upErr } = await supabase.from("inventories").update({ quantity: item.quantity - qty }).eq("id", item.id);
-      if (upErr) throw upErr;
     },
     onSuccess: () => { toast.success("Damage logged"); onClose(); },
     onError: (e: Error) => toast.error(e.message),

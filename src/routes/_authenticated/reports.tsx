@@ -3,12 +3,13 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   FileSpreadsheet, FileText, BarChart3, Boxes, AlertTriangle, RotateCcw, CreditCard,
-  TrendingUp, Building2, Users as UsersIcon, PackageX,
+  TrendingUp, Building2, Users as UsersIcon, PackageX, PackagePlus,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { exportCSV, exportXLSX } from "@/lib/export-report";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/format";
@@ -29,12 +30,16 @@ type Credit = { id: string; buyer_name: string; total: number; amount_paid: numb
 type Branch = { id: string; name: string };
 type Profile = { id: string; full_name: string };
 
+type Receipt = { id: string; quantity: number; unit_cost: number; total_cost: number; reference: string | null; created_at: string; inventory_id: string; supplier_id: string | null; branch_id: string | null };
+type Supplier = { id: string; name: string };
+
 const SECTIONS = [
   { id: "sales-summary", label: "Sales Summary", icon: BarChart3 },
   { id: "stock-on-hand", label: "Stock on Hand", icon: Boxes },
   { id: "low-stock", label: "Low / Out of Stock", icon: PackageX },
   { id: "top-products", label: "Top Products & Categories", icon: TrendingUp },
   { id: "pnl", label: "Profit & Loss", icon: FileText },
+  { id: "purchases", label: "Purchases", icon: PackagePlus },
   { id: "damages", label: "Damages", icon: AlertTriangle },
   { id: "returns", label: "Returns", icon: RotateCcw },
   { id: "credit", label: "Credit / Receivables", icon: CreditCard },
@@ -47,13 +52,15 @@ function ReportsPage() {
   const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
   const [from, setFrom] = useState(monthAgo);
   const [to, setTo] = useState(today);
+  const [branch, setBranch] = useState<string>("all");
+  const [category, setCategory] = useState<string>("all");
 
   const { data, isLoading } = useQuery({
     queryKey: ["reports", from, to],
     queryFn: async () => {
       const fromISO = new Date(from).toISOString();
       const toISO = new Date(to + "T23:59:59").toISOString();
-      const [salesR, invR, damR, retR, credR, brR, profR] = await Promise.all([
+      const [salesR, invR, damR, retR, credR, brR, profR, recR, supR] = await Promise.all([
         supabase.from("sales").select("*").gte("created_at", fromISO).lte("created_at", toISO).order("created_at", { ascending: false }),
         supabase.from("inventories").select("*"),
         supabase.from("damages").select("*").gte("created_at", fromISO).lte("created_at", toISO),
@@ -61,6 +68,8 @@ function ReportsPage() {
         supabase.from("credit_sales").select("*"),
         supabase.from("branches").select("id, name"),
         supabase.from("profiles").select("id, full_name"),
+        supabase.from("stock_receipts").select("*").gte("created_at", fromISO).lte("created_at", toISO),
+        supabase.from("suppliers").select("id, name"),
       ]);
       return {
         sales: (salesR.data ?? []) as Sale[],
@@ -70,20 +79,57 @@ function ReportsPage() {
         credit: (credR.data ?? []) as Credit[],
         branches: (brR.data ?? []) as Branch[],
         profiles: (profR.data ?? []) as Profile[],
+        receipts: (recR.data ?? []) as Receipt[],
+        suppliers: (supR.data ?? []) as Supplier[],
       };
     },
   });
+
+  const filteredSales = useMemo(() => (data?.sales ?? []).filter((s) => {
+    if (branch !== "all" && s.branch_id !== branch) return false;
+    if (category !== "all") {
+      const items = Array.isArray(s.items) ? (s.items as Array<{ category?: string }>) : [];
+      if (!items.some((it) => (it.category ?? "Uncategorized") === category)) return false;
+    }
+    return true;
+  }), [data?.sales, branch, category]);
+
+  const filteredInv = useMemo(() => (data?.inventory ?? []).filter((i) =>
+    (category === "all" || i.category === category) && (branch === "all" || i.branch_id === branch || i.branch_id === null)
+  ), [data?.inventory, branch, category]);
+
+  const categories = useMemo(() => Array.from(new Set((data?.inventory ?? []).map((i) => i.category))).sort(), [data?.inventory]);
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-bold">Reports</h1>
-          <p className="text-muted-foreground text-sm">Filter by date, then download any section as CSV or Excel.</p>
+          <p className="text-muted-foreground text-sm">Filter by date, branch and category, then download as CSV or Excel.</p>
         </div>
-        <div className="flex gap-2 items-end">
+        <div className="flex gap-2 items-end flex-wrap">
           <div><Label className="text-xs">From</Label><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-40" /></div>
           <div><Label className="text-xs">To</Label><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-40" /></div>
+          <div>
+            <Label className="text-xs">Branch</Label>
+            <Select value={branch} onValueChange={setBranch}>
+              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All branches</SelectItem>
+                {(data?.branches ?? []).map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Category</Label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All categories</SelectItem>
+                {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -100,16 +146,17 @@ function ReportsPage() {
           <div className="py-12 text-center text-muted-foreground">Loading…</div>
         ) : (
           <>
-            <TabsContent value="sales-summary"><SalesSummary sales={data.sales} branches={data.branches} /></TabsContent>
-            <TabsContent value="stock-on-hand"><StockOnHand inventory={data.inventory} /></TabsContent>
-            <TabsContent value="low-stock"><LowStock inventory={data.inventory} /></TabsContent>
-            <TabsContent value="top-products"><TopProducts sales={data.sales} /></TabsContent>
-            <TabsContent value="pnl"><PnL sales={data.sales} returns={data.returns} damages={data.damages} /></TabsContent>
+            <TabsContent value="sales-summary"><SalesSummary sales={filteredSales} branches={data.branches} /></TabsContent>
+            <TabsContent value="stock-on-hand"><StockOnHand inventory={filteredInv} /></TabsContent>
+            <TabsContent value="low-stock"><LowStock inventory={filteredInv} /></TabsContent>
+            <TabsContent value="top-products"><TopProducts sales={filteredSales} /></TabsContent>
+            <TabsContent value="pnl"><PnL sales={filteredSales} returns={data.returns} damages={data.damages} /></TabsContent>
+            <TabsContent value="purchases"><PurchasesReport receipts={data.receipts} inventory={data.inventory} suppliers={data.suppliers} /></TabsContent>
             <TabsContent value="damages"><DamagesReport damages={data.damages} /></TabsContent>
             <TabsContent value="returns"><ReturnsReport returns={data.returns} inventory={data.inventory} /></TabsContent>
             <TabsContent value="credit"><CreditReport credit={data.credit} /></TabsContent>
-            <TabsContent value="staff"><StaffPerf sales={data.sales} profiles={data.profiles} /></TabsContent>
-            <TabsContent value="branch"><BranchCompare sales={data.sales} branches={data.branches} /></TabsContent>
+            <TabsContent value="staff"><StaffPerf sales={filteredSales} profiles={data.profiles} /></TabsContent>
+            <TabsContent value="branch"><BranchCompare sales={filteredSales} branches={data.branches} /></TabsContent>
           </>
         )}
       </Tabs>
@@ -126,6 +173,51 @@ function ExportBar({ section, rows }: { section: string; rows: Record<string, st
         <Button variant="hero" size="sm" disabled={!rows.length} onClick={() => exportXLSX(section, rows)}><FileSpreadsheet className="h-4 w-4" /> Excel</Button>
       </div>
     </div>
+  );
+}
+
+function PurchasesReport({ receipts, inventory, suppliers }: { receipts: Receipt[]; inventory: Inv[]; suppliers: Supplier[] }) {
+  const invMap = new Map(inventory.map((i) => [i.id, i]));
+  const supMap = new Map(suppliers.map((s) => [s.id, s.name]));
+  const rows = receipts.map((r) => ({
+    Date: formatDateTime(r.created_at),
+    Item: invMap.get(r.inventory_id)?.name ?? "—",
+    Category: invMap.get(r.inventory_id)?.category ?? "—",
+    Supplier: r.supplier_id ? supMap.get(r.supplier_id) ?? "—" : "—",
+    Quantity: r.quantity,
+    "Unit Cost": Number(r.unit_cost),
+    "Total Cost": Number(r.total_cost),
+    Reference: r.reference ?? "",
+  }));
+  const totalSpent = rows.reduce((s, r) => s + Number(r["Total Cost"]), 0);
+  const totalUnits = rows.reduce((s, r) => s + Number(r.Quantity), 0);
+
+  // Spend by supplier chart
+  const supSpend = new Map<string, number>();
+  for (const r of receipts) {
+    const k = r.supplier_id ? supMap.get(r.supplier_id) ?? "—" : "—";
+    supSpend.set(k, (supSpend.get(k) ?? 0) + Number(r.total_cost));
+  }
+  const supRows = Array.from(supSpend.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+
+  return (
+    <Section title="Purchases & stock receiving">
+      <ExportBar section="purchases" rows={rows} />
+      <div className="grid grid-cols-3 gap-3 mb-5">
+        <KPI label="Receipts" value={rows.length.toString()} />
+        <KPI label="Units received" value={totalUnits.toString()} />
+        <KPI label="Total spend" value={formatCurrency(totalSpent)} />
+      </div>
+      {supRows.length > 0 && (
+        <div className="h-56 mb-5">
+          <ResponsiveContainer><BarChart data={supRows.slice(0, 10)}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" tick={{ fontSize: 11 }} /><YAxis tick={{ fontSize: 11 }} /><Tooltip formatter={(v: number) => formatCurrency(v)} /><Bar dataKey="value" fill="oklch(0.62 0.21 38)" radius={[6, 6, 0, 0]} /></BarChart></ResponsiveContainer>
+        </div>
+      )}
+      <Table columns={[
+        { key: "Date", label: "Date" }, { key: "Item", label: "Item" }, { key: "Category", label: "Category" }, { key: "Supplier", label: "Supplier" },
+        { key: "Quantity", label: "Qty", align: "right" }, { key: "Unit Cost", label: "Unit cost", align: "right" }, { key: "Total Cost", label: "Total", align: "right" }, { key: "Reference", label: "Ref" },
+      ]} rows={rows.map((r) => ({ ...r, "Unit Cost": formatCurrency(r["Unit Cost"]), "Total Cost": formatCurrency(r["Total Cost"]) }))} />
+    </Section>
   );
 }
 

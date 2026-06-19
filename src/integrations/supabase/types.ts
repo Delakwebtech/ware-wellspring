@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          details: Json | null
+          entity: string
+          entity_id: string | null
+          id: string
+          store_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          details?: Json | null
+          entity: string
+          entity_id?: string | null
+          id?: string
+          store_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          details?: Json | null
+          entity?: string
+          entity_id?: string | null
+          id?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branches: {
         Row: {
           address: string | null
@@ -431,35 +472,171 @@ export type Database = {
           },
         ]
       }
+      stock_receipts: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          id: string
+          inventory_id: string
+          notes: string | null
+          quantity: number
+          received_by: string | null
+          reference: string | null
+          store_id: string
+          supplier_id: string | null
+          total_cost: number
+          unit_cost: number
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          id?: string
+          inventory_id: string
+          notes?: string | null
+          quantity: number
+          received_by?: string | null
+          reference?: string | null
+          store_id: string
+          supplier_id?: string | null
+          total_cost: number
+          unit_cost: number
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          id?: string
+          inventory_id?: string
+          notes?: string | null
+          quantity?: number
+          received_by?: string | null
+          reference?: string | null
+          store_id?: string
+          supplier_id?: string | null
+          total_cost?: number
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_receipts_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_receipts_inventory_id_fkey"
+            columns: ["inventory_id"]
+            isOneToOne: false
+            referencedRelation: "inventories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_receipts_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_receipts_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
+          address: string | null
           created_at: string
           currency: string
           id: string
           logo: string | null
+          logo_url: string | null
           name: string
+          phone: string | null
+          receipt_footer: string | null
           subdomain: string | null
+          tax_percent: number
           updated_at: string
         }
         Insert: {
+          address?: string | null
           created_at?: string
           currency?: string
           id?: string
           logo?: string | null
+          logo_url?: string | null
           name: string
+          phone?: string | null
+          receipt_footer?: string | null
           subdomain?: string | null
+          tax_percent?: number
           updated_at?: string
         }
         Update: {
+          address?: string | null
           created_at?: string
           currency?: string
           id?: string
           logo?: string | null
+          logo_url?: string | null
           name?: string
+          phone?: string | null
+          receipt_footer?: string | null
           subdomain?: string | null
+          tax_percent?: number
           updated_at?: string
         }
         Relationships: []
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          contact_name: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -505,6 +682,59 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      log_damage: {
+        Args: { _inventory_id: string; _quantity: number; _reason: string }
+        Returns: string
+      }
+      process_sale_return: {
+        Args: {
+          _inventory_id: string
+          _quantity: number
+          _reason: string
+          _sale_id?: string
+        }
+        Returns: string
+      }
+      record_credit_payment: {
+        Args: { _amount: number; _credit_id: string }
+        Returns: undefined
+      }
+      record_credit_sale: {
+        Args: {
+          _amount_paid: number
+          _buyer_name: string
+          _buyer_phone: string
+          _due_date: string
+          _inventory_id: string
+          _quantity: number
+        }
+        Returns: string
+      }
+      record_sale: {
+        Args: { _customer_name?: string; _items: Json; _payment_method: string }
+        Returns: string
+      }
+      record_stock_receipt: {
+        Args: {
+          _inventory_id: string
+          _notes: string
+          _quantity: number
+          _reference: string
+          _supplier_id: string
+          _unit_cost: number
+        }
+        Returns: string
+      }
+      write_audit: {
+        Args: {
+          _action: string
+          _details: Json
+          _entity: string
+          _entity_id: string
+          _store: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

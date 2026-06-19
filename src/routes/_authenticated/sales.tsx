@@ -8,14 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { formatCurrency, formatDateTime, genSaleRef } from "@/lib/format";
+import { formatCurrency, formatDateTime } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/sales")({
   head: () => ({ meta: [{ title: "Sales · Stockly" }] }),
   component: SalesPage,
 });
 
-type Inv = { id: string; name: string; category: string; quantity: number; purchase_price: number; selling_price: number; store_id: string; branch_id: string | null };
+type Inv = { id: string; name: string; sku: string | null; category: string; quantity: number; purchase_price: number; selling_price: number; store_id: string; branch_id: string | null };
 type CartLine = { inventory_id: string; name: string; category: string; price: number; cost: number; quantity: number; available: number };
 type SaleRow = { id: string; sale_ref: string; total_amount: number; payment_method: string; customer_name: string | null; created_at: string };
 
@@ -26,10 +26,22 @@ function SalesPage() {
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [customer, setCustomer] = useState("");
 
-  const { data: inv = [] } = useQuery({
-    queryKey: ["inventory-for-sales"],
+  const { data: meBranch } = useQuery({
+    queryKey: ["my-branch"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("inventories").select("id, name, category, quantity, purchase_price, selling_price, store_id, branch_id").gt("quantity", 0).order("name");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data } = await supabase.from("profiles").select("branch_id, store_id").eq("id", user.id).maybeSingle();
+      return data;
+    },
+  });
+
+  const { data: inv = [] } = useQuery({
+    queryKey: ["inventory-for-sales", meBranch?.branch_id],
+    queryFn: async () => {
+      let q = supabase.from("inventories").select("id, name, sku, category, quantity, purchase_price, selling_price, store_id, branch_id").gt("quantity", 0).order("name");
+      if (meBranch?.branch_id) q = q.or(`branch_id.eq.${meBranch.branch_id},branch_id.is.null`);
+      const { data, error } = await q;
       if (error) throw error;
       return data as Inv[];
     },
@@ -61,32 +73,20 @@ function SalesPage() {
   const checkout = useMutation({
     mutationFn: async () => {
       if (!cart.length) throw new Error("Cart is empty");
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not signed in");
-      const { data: profile } = await supabase.from("profiles").select("store_id, branch_id").eq("id", user.id).maybeSingle();
-      if (!profile?.store_id) throw new Error("No store assigned");
-      const items = cart.map((c) => ({ inventory_id: c.inventory_id, name: c.name, category: c.category, price: c.price, quantity: c.quantity }));
-      const cost_amount = cart.reduce((s, l) => s + l.cost * l.quantity, 0);
-      const total_amount = cart.reduce((s, l) => s + l.price * l.quantity, 0);
-      const { error: saleErr } = await supabase.from("sales").insert({
-        sale_ref: genSaleRef(), items, total_amount, cost_amount, payment_method: paymentMethod,
-        customer_name: customer || null, store_id: profile.store_id, branch_id: profile.branch_id, added_by: user.id,
+      const items = cart.map((c) => ({ inventory_id: c.inventory_id, quantity: c.quantity }));
+      const { data, error } = await supabase.rpc("record_sale", {
+        _items: items,
+        _payment_method: paymentMethod,
+        ...(customer ? { _customer_name: customer } : {}),
       });
-      if (saleErr) throw saleErr;
-
-      // Decrement inventory
-      for (const l of cart) {
-        const item = inv.find((i) => i.id === l.inventory_id);
-        if (!item) continue;
-        const newQty = item.quantity - l.quantity;
-        const { error: upErr } = await supabase.from("inventories").update({ quantity: newQty }).eq("id", l.inventory_id);
-        if (upErr) throw upErr;
-      }
+      if (error) throw error;
+      return data as string;
     },
     onSuccess: () => {
       toast.success("Sale recorded");
       setCart([]); setCustomer("");
       qc.invalidateQueries({ queryKey: ["inventory-for-sales"] });
+      qc.invalidateQueries({ queryKey: ["inventory"] });
       qc.invalidateQueries({ queryKey: ["recent-sales"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
