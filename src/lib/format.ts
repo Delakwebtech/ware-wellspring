@@ -1,7 +1,19 @@
-export function formatCurrency(value: number | string | null | undefined, currency = "NGN") {
+// Currency is set by AppShell from the user's store settings, then read everywhere.
+let activeCurrency = "NGN";
+const SYMBOLS: Record<string, string> = { NGN: "₦", USD: "$", EUR: "€", GBP: "£", GHS: "₵", KES: "KSh", ZAR: "R", INR: "₹", CAD: "C$", AUD: "A$" };
+
+export function setActiveCurrency(code: string | null | undefined) {
+  if (code && typeof code === "string") activeCurrency = code.toUpperCase();
+}
+export function getActiveCurrency() { return activeCurrency; }
+export function currencySymbol(code = activeCurrency) {
+  return SYMBOLS[code.toUpperCase()] ?? code.toUpperCase() + " ";
+}
+
+export function formatCurrency(value: number | string | null | undefined, currency?: string) {
   const n = typeof value === "string" ? Number(value) : (value ?? 0);
-  const symbol = currency === "NGN" ? "₦" : currency === "USD" ? "$" : currency + " ";
-  return symbol + (Number.isFinite(n) ? n : 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const code = (currency ?? activeCurrency).toUpperCase();
+  return currencySymbol(code) + (Number.isFinite(n) ? n : 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 export function formatNumber(value: number | string | null | undefined) {
