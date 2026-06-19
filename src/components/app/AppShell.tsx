@@ -48,6 +48,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
     },
   });
 
+  useEffect(() => { setActiveCurrency(me?.store?.currency); }, [me?.store?.currency]);
+
   async function signOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
