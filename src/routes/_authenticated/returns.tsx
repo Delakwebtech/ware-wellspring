@@ -101,16 +101,10 @@ function ReturnDialog({ inventory, onClose }: { inventory: Inv[]; onClose: () =>
   const save = useMutation({
     mutationFn: async () => {
       if (!item) throw new Error("Pick an item");
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not signed in");
-      const { error } = await supabase.from("sales_returns").insert({
-        inventory_id: item.id, quantity: qty, reason, refund_amount: refund,
-        store_id: item.store_id, branch_id: item.branch_id, processed_by: user.id,
+      const { error } = await supabase.rpc("process_sale_return", {
+        _inventory_id: item.id, _quantity: qty, _reason: reason, _sale_id: null,
       });
       if (error) throw error;
-      // restock
-      const { error: upErr } = await supabase.from("inventories").update({ quantity: item.quantity + qty }).eq("id", item.id);
-      if (upErr) throw upErr;
     },
     onSuccess: () => { toast.success("Return processed"); onClose(); },
     onError: (e: Error) => toast.error(e.message),

@@ -125,17 +125,15 @@ function NewDialog({ inventory, onClose }: { inventory: Inv[]; onClose: () => vo
     mutationFn: async () => {
       if (!item) throw new Error("Pick an item");
       if (qty < 1 || qty > item.quantity) throw new Error("Invalid quantity");
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not signed in");
-      const status = balance <= 0 ? "PAID" : amountPaid > 0 ? "PARTIAL" : "PENDING";
-      const { error } = await supabase.from("credit_sales").insert({
-        inventory_id: item.id, buyer_name: buyerName, buyer_phone: buyerPhone || null,
-        quantity: qty, price: item.selling_price, total, amount_paid: amountPaid, balance, status,
-        due_date: dueDate || null, store_id: item.store_id, branch_id: item.branch_id, added_by: user.id,
+      const { error } = await supabase.rpc("record_credit_sale", {
+        _inventory_id: item.id,
+        _buyer_name: buyerName,
+        _buyer_phone: buyerPhone || null,
+        _quantity: qty,
+        _amount_paid: amountPaid,
+        _due_date: dueDate || null,
       });
       if (error) throw error;
-      const { error: upErr } = await supabase.from("inventories").update({ quantity: item.quantity - qty }).eq("id", item.id);
-      if (upErr) throw upErr;
     },
     onSuccess: () => { toast.success("Credit sale recorded"); onClose(); },
     onError: (e: Error) => toast.error(e.message),
@@ -173,10 +171,7 @@ function PayDialog({ row, onClose }: { row: Credit; onClose: () => void }) {
   const [amount, setAmount] = useState(Number(row.balance));
   const save = useMutation({
     mutationFn: async () => {
-      const newPaid = Number(row.amount_paid) + amount;
-      const newBalance = Number(row.total) - newPaid;
-      const status = newBalance <= 0 ? "PAID" : "PARTIAL";
-      const { error } = await supabase.from("credit_sales").update({ amount_paid: newPaid, balance: Math.max(0, newBalance), status }).eq("id", row.id);
+      const { error } = await supabase.rpc("record_credit_payment", { _credit_id: row.id, _amount: amount });
       if (error) throw error;
     },
     onSuccess: () => { toast.success("Payment recorded"); onClose(); },

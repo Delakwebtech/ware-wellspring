@@ -53,7 +53,7 @@ const faqs = [
   { q: "Is my data secure?", a: "Row-level security ensures each store only sees its own data. Roles control who can edit what." },
 ];
 
-export default function LandingPage() {
+function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
