@@ -131,7 +131,7 @@ function NewDialog({ inventory, onClose }: { inventory: Inv[]; onClose: () => vo
         _buyer_phone: buyerPhone || "",
         _quantity: qty,
         _amount_paid: amountPaid,
-        ...(dueDate ? { _due_date: dueDate } : {}),
+        _due_date: dueDate || new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
       });
       if (error) throw error;
     },
