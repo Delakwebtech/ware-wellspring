@@ -3,12 +3,13 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   FileSpreadsheet, FileText, BarChart3, Boxes, AlertTriangle, RotateCcw, CreditCard,
-  TrendingUp, Building2, Users as UsersIcon, PackageX,
+  TrendingUp, Building2, Users as UsersIcon, PackageX, PackagePlus,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { exportCSV, exportXLSX } from "@/lib/export-report";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/format";
@@ -29,12 +30,16 @@ type Credit = { id: string; buyer_name: string; total: number; amount_paid: numb
 type Branch = { id: string; name: string };
 type Profile = { id: string; full_name: string };
 
+type Receipt = { id: string; quantity: number; unit_cost: number; total_cost: number; reference: string | null; created_at: string; inventory_id: string; supplier_id: string | null; branch_id: string | null };
+type Supplier = { id: string; name: string };
+
 const SECTIONS = [
   { id: "sales-summary", label: "Sales Summary", icon: BarChart3 },
   { id: "stock-on-hand", label: "Stock on Hand", icon: Boxes },
   { id: "low-stock", label: "Low / Out of Stock", icon: PackageX },
   { id: "top-products", label: "Top Products & Categories", icon: TrendingUp },
   { id: "pnl", label: "Profit & Loss", icon: FileText },
+  { id: "purchases", label: "Purchases", icon: PackagePlus },
   { id: "damages", label: "Damages", icon: AlertTriangle },
   { id: "returns", label: "Returns", icon: RotateCcw },
   { id: "credit", label: "Credit / Receivables", icon: CreditCard },
@@ -47,13 +52,15 @@ function ReportsPage() {
   const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
   const [from, setFrom] = useState(monthAgo);
   const [to, setTo] = useState(today);
+  const [branch, setBranch] = useState<string>("all");
+  const [category, setCategory] = useState<string>("all");
 
   const { data, isLoading } = useQuery({
     queryKey: ["reports", from, to],
     queryFn: async () => {
       const fromISO = new Date(from).toISOString();
       const toISO = new Date(to + "T23:59:59").toISOString();
-      const [salesR, invR, damR, retR, credR, brR, profR] = await Promise.all([
+      const [salesR, invR, damR, retR, credR, brR, profR, recR, supR] = await Promise.all([
         supabase.from("sales").select("*").gte("created_at", fromISO).lte("created_at", toISO).order("created_at", { ascending: false }),
         supabase.from("inventories").select("*"),
         supabase.from("damages").select("*").gte("created_at", fromISO).lte("created_at", toISO),
@@ -61,6 +68,8 @@ function ReportsPage() {
         supabase.from("credit_sales").select("*"),
         supabase.from("branches").select("id, name"),
         supabase.from("profiles").select("id, full_name"),
+        supabase.from("stock_receipts").select("*").gte("created_at", fromISO).lte("created_at", toISO),
+        supabase.from("suppliers").select("id, name"),
       ]);
       return {
         sales: (salesR.data ?? []) as Sale[],
@@ -70,9 +79,26 @@ function ReportsPage() {
         credit: (credR.data ?? []) as Credit[],
         branches: (brR.data ?? []) as Branch[],
         profiles: (profR.data ?? []) as Profile[],
+        receipts: (recR.data ?? []) as Receipt[],
+        suppliers: (supR.data ?? []) as Supplier[],
       };
     },
   });
+
+  const filteredSales = useMemo(() => (data?.sales ?? []).filter((s) => {
+    if (branch !== "all" && s.branch_id !== branch) return false;
+    if (category !== "all") {
+      const items = Array.isArray(s.items) ? (s.items as Array<{ category?: string }>) : [];
+      if (!items.some((it) => (it.category ?? "Uncategorized") === category)) return false;
+    }
+    return true;
+  }), [data?.sales, branch, category]);
+
+  const filteredInv = useMemo(() => (data?.inventory ?? []).filter((i) =>
+    (category === "all" || i.category === category) && (branch === "all" || i.branch_id === branch || i.branch_id === null)
+  ), [data?.inventory, branch, category]);
+
+  const categories = useMemo(() => Array.from(new Set((data?.inventory ?? []).map((i) => i.category))).sort(), [data?.inventory]);
 
   return (
     <div className="space-y-5">
