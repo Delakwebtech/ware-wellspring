@@ -77,7 +77,7 @@ function SalesPage() {
       const { data, error } = await supabase.rpc("record_sale", {
         _items: items,
         _payment_method: paymentMethod,
-        _customer_name: customer || null,
+        ...(customer ? { _customer_name: customer } : {}),
       });
       if (error) throw error;
       return data as string;

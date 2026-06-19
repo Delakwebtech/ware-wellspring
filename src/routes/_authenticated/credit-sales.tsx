@@ -128,10 +128,10 @@ function NewDialog({ inventory, onClose }: { inventory: Inv[]; onClose: () => vo
       const { error } = await supabase.rpc("record_credit_sale", {
         _inventory_id: item.id,
         _buyer_name: buyerName,
-        _buyer_phone: buyerPhone || null,
+        _buyer_phone: buyerPhone || "",
         _quantity: qty,
         _amount_paid: amountPaid,
-        _due_date: dueDate || null,
+        ...(dueDate ? { _due_date: dueDate } : {}),
       });
       if (error) throw error;
     },

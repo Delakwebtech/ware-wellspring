@@ -102,7 +102,7 @@ function ReturnDialog({ inventory, onClose }: { inventory: Inv[]; onClose: () =>
     mutationFn: async () => {
       if (!item) throw new Error("Pick an item");
       const { error } = await supabase.rpc("process_sale_return", {
-        _inventory_id: item.id, _quantity: qty, _reason: reason, _sale_id: null,
+        _inventory_id: item.id, _quantity: qty, _reason: reason,
       });
       if (error) throw error;
     },
