@@ -105,11 +105,31 @@ function ReportsPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-bold">Reports</h1>
-          <p className="text-muted-foreground text-sm">Filter by date, then download any section as CSV or Excel.</p>
+          <p className="text-muted-foreground text-sm">Filter by date, branch and category, then download as CSV or Excel.</p>
         </div>
-        <div className="flex gap-2 items-end">
+        <div className="flex gap-2 items-end flex-wrap">
           <div><Label className="text-xs">From</Label><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-40" /></div>
           <div><Label className="text-xs">To</Label><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-40" /></div>
+          <div>
+            <Label className="text-xs">Branch</Label>
+            <Select value={branch} onValueChange={setBranch}>
+              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All branches</SelectItem>
+                {(data?.branches ?? []).map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Category</Label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All categories</SelectItem>
+                {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -126,16 +146,17 @@ function ReportsPage() {
           <div className="py-12 text-center text-muted-foreground">Loading…</div>
         ) : (
           <>
-            <TabsContent value="sales-summary"><SalesSummary sales={data.sales} branches={data.branches} /></TabsContent>
-            <TabsContent value="stock-on-hand"><StockOnHand inventory={data.inventory} /></TabsContent>
-            <TabsContent value="low-stock"><LowStock inventory={data.inventory} /></TabsContent>
-            <TabsContent value="top-products"><TopProducts sales={data.sales} /></TabsContent>
-            <TabsContent value="pnl"><PnL sales={data.sales} returns={data.returns} damages={data.damages} /></TabsContent>
+            <TabsContent value="sales-summary"><SalesSummary sales={filteredSales} branches={data.branches} /></TabsContent>
+            <TabsContent value="stock-on-hand"><StockOnHand inventory={filteredInv} /></TabsContent>
+            <TabsContent value="low-stock"><LowStock inventory={filteredInv} /></TabsContent>
+            <TabsContent value="top-products"><TopProducts sales={filteredSales} /></TabsContent>
+            <TabsContent value="pnl"><PnL sales={filteredSales} returns={data.returns} damages={data.damages} /></TabsContent>
+            <TabsContent value="purchases"><PurchasesReport receipts={data.receipts} inventory={data.inventory} suppliers={data.suppliers} /></TabsContent>
             <TabsContent value="damages"><DamagesReport damages={data.damages} /></TabsContent>
             <TabsContent value="returns"><ReturnsReport returns={data.returns} inventory={data.inventory} /></TabsContent>
             <TabsContent value="credit"><CreditReport credit={data.credit} /></TabsContent>
-            <TabsContent value="staff"><StaffPerf sales={data.sales} profiles={data.profiles} /></TabsContent>
-            <TabsContent value="branch"><BranchCompare sales={data.sales} branches={data.branches} /></TabsContent>
+            <TabsContent value="staff"><StaffPerf sales={filteredSales} profiles={data.profiles} /></TabsContent>
+            <TabsContent value="branch"><BranchCompare sales={filteredSales} branches={data.branches} /></TabsContent>
           </>
         )}
       </Tabs>
