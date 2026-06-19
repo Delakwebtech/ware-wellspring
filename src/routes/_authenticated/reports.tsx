@@ -176,6 +176,51 @@ function ExportBar({ section, rows }: { section: string; rows: Record<string, st
   );
 }
 
+function PurchasesReport({ receipts, inventory, suppliers }: { receipts: Receipt[]; inventory: Inv[]; suppliers: Supplier[] }) {
+  const invMap = new Map(inventory.map((i) => [i.id, i]));
+  const supMap = new Map(suppliers.map((s) => [s.id, s.name]));
+  const rows = receipts.map((r) => ({
+    Date: formatDateTime(r.created_at),
+    Item: invMap.get(r.inventory_id)?.name ?? "—",
+    Category: invMap.get(r.inventory_id)?.category ?? "—",
+    Supplier: r.supplier_id ? supMap.get(r.supplier_id) ?? "—" : "—",
+    Quantity: r.quantity,
+    "Unit Cost": Number(r.unit_cost),
+    "Total Cost": Number(r.total_cost),
+    Reference: r.reference ?? "",
+  }));
+  const totalSpent = rows.reduce((s, r) => s + Number(r["Total Cost"]), 0);
+  const totalUnits = rows.reduce((s, r) => s + Number(r.Quantity), 0);
+
+  // Spend by supplier chart
+  const supSpend = new Map<string, number>();
+  for (const r of receipts) {
+    const k = r.supplier_id ? supMap.get(r.supplier_id) ?? "—" : "—";
+    supSpend.set(k, (supSpend.get(k) ?? 0) + Number(r.total_cost));
+  }
+  const supRows = Array.from(supSpend.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+
+  return (
+    <Section title="Purchases & stock receiving">
+      <ExportBar section="purchases" rows={rows} />
+      <div className="grid grid-cols-3 gap-3 mb-5">
+        <KPI label="Receipts" value={rows.length.toString()} />
+        <KPI label="Units received" value={totalUnits.toString()} />
+        <KPI label="Total spend" value={formatCurrency(totalSpent)} />
+      </div>
+      {supRows.length > 0 && (
+        <div className="h-56 mb-5">
+          <ResponsiveContainer><BarChart data={supRows.slice(0, 10)}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" tick={{ fontSize: 11 }} /><YAxis tick={{ fontSize: 11 }} /><Tooltip formatter={(v: number) => formatCurrency(v)} /><Bar dataKey="value" fill="oklch(0.62 0.21 38)" radius={[6, 6, 0, 0]} /></BarChart></ResponsiveContainer>
+        </div>
+      )}
+      <Table columns={[
+        { key: "Date", label: "Date" }, { key: "Item", label: "Item" }, { key: "Category", label: "Category" }, { key: "Supplier", label: "Supplier" },
+        { key: "Quantity", label: "Qty", align: "right" }, { key: "Unit Cost", label: "Unit cost", align: "right" }, { key: "Total Cost", label: "Total", align: "right" }, { key: "Reference", label: "Ref" },
+      ]} rows={rows.map((r) => ({ ...r, "Unit Cost": formatCurrency(r["Unit Cost"]), "Total Cost": formatCurrency(r["Total Cost"]) }))} />
+    </Section>
+  );
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mt-4 rounded-2xl border bg-card p-5 shadow-card">
