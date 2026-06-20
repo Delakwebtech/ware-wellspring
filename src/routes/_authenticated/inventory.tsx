@@ -125,6 +125,7 @@ function ItemDialog({ editing, onClose }: { editing: Item | null; onClose: () =>
   const [form, setForm] = useState({
     name: editing?.name ?? "",
     sku: editing?.sku ?? "",
+    barcode: editing?.barcode ?? "",
     category: editing?.category ?? "General",
     quantity: editing?.quantity ?? 0,
     reorder_level: editing?.reorder_level ?? 5,
