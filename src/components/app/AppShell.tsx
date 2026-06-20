@@ -4,13 +4,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard, Boxes, Receipt, AlertTriangle, RotateCcw, CreditCard,
   Users, BarChart3, Settings as SettingsIcon, LogOut, Menu, Building2,
-  Truck, PackagePlus, ScrollText, ArrowLeftRight,
+  Truck, PackagePlus, ScrollText, ArrowLeftRight, Wallet, Banknote, UserCircle2, Mail,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { setActiveCurrency } from "@/lib/format";
+import { NotificationBell } from "./NotificationBell";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -21,13 +22,18 @@ const nav = [
   { to: "/returns", label: "Returns", icon: RotateCcw },
   { to: "/damages", label: "Damages", icon: AlertTriangle },
   { to: "/transfers", label: "Stock Transfers", icon: ArrowLeftRight },
+  { to: "/customers", label: "Customers", icon: UserCircle2 },
   { to: "/suppliers", label: "Suppliers", icon: Truck },
+  { to: "/expenses", label: "Expenses", icon: Wallet },
+  { to: "/cash-drawer", label: "Cash Drawer", icon: Banknote },
   { to: "/reports", label: "Reports", icon: BarChart3 },
   { to: "/audit", label: "Audit Log", icon: ScrollText },
   { to: "/branches", label: "Branches", icon: Building2 },
   { to: "/users", label: "Users", icon: Users },
+  { to: "/invites", label: "Invite Staff", icon: Mail },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ] as const;
+
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
