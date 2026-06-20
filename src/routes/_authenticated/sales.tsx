@@ -139,6 +139,19 @@ function SalesPage() {
       <div className="grid lg:grid-cols-3 gap-4">
         {/* Catalogue */}
         <div className="lg:col-span-2 rounded-2xl border bg-card shadow-card p-5">
+          <form
+            onSubmit={(e) => { e.preventDefault(); handleScan(scan); }}
+            className="mb-3 flex items-center gap-2"
+          >
+            <ScanLine className="h-4 w-4 text-muted-foreground" />
+            <Input
+              ref={scanRef}
+              placeholder="Scan barcode or type SKU + Enter"
+              value={scan}
+              onChange={(e) => setScan(e.target.value)}
+              autoFocus
+            />
+          </form>
           <Input placeholder="Search items…" value={search} onChange={(e) => setSearch(e.target.value)} className="mb-4" />
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-1">
             {filtered.length === 0 && <p className="col-span-full text-sm text-muted-foreground py-6 text-center">No items in stock</p>}
