@@ -50,7 +50,7 @@ function SalesPage() {
   const { data: inv = [] } = useQuery({
     queryKey: ["inventory-for-sales", meBranch?.branch_id],
     queryFn: async () => {
-      let q = supabase.from("inventories").select("id, name, sku, category, quantity, purchase_price, selling_price, store_id, branch_id").gt("quantity", 0).order("name");
+      let q = supabase.from("inventories").select("id, name, sku, barcode, category, quantity, purchase_price, selling_price, store_id, branch_id").gt("quantity", 0).order("name");
       if (meBranch?.branch_id) q = q.or(`branch_id.eq.${meBranch.branch_id},branch_id.is.null`);
       const { data, error } = await q;
       if (error) throw error;
