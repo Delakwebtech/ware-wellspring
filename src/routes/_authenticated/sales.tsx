@@ -81,20 +81,45 @@ function SalesPage() {
     });
   }
 
+  function handleScan(code: string) {
+    const c = code.trim();
+    if (!c) return;
+    const hit = inv.find((i) => i.barcode === c || i.sku === c);
+    if (!hit) { toast.error("No item with barcode/SKU: " + c); return; }
+    addToCart(hit);
+    setScan("");
+    scanRef.current?.focus();
+  }
+
   const checkout = useMutation({
     mutationFn: async () => {
       if (!cart.length) throw new Error("Cart is empty");
       const items = cart.map((c) => ({ inventory_id: c.inventory_id, quantity: c.quantity }));
+      const snapshot = { items: cart.map((c) => ({ name: c.name, quantity: c.quantity, price: c.price })), total, paymentMethod, customer };
       const { data, error } = await supabase.rpc("record_sale", {
         _items: items,
         _payment_method: paymentMethod,
         ...(customer ? { _customer_name: customer } : {}),
       });
       if (error) throw error;
-      return data as string;
+      const saleId = data as string;
+      const { data: sale } = await supabase.from("sales").select("sale_ref, created_at").eq("id", saleId).maybeSingle();
+      return { sale, snapshot };
     },
-    onSuccess: () => {
+    onSuccess: ({ sale, snapshot }) => {
       toast.success("Sale recorded");
+      if (sale && store) {
+        const receipt: ReceiptData = {
+          sale_ref: sale.sale_ref,
+          created_at: sale.created_at,
+          payment_method: snapshot.paymentMethod,
+          customer_name: snapshot.customer || null,
+          items: snapshot.items,
+          total: snapshot.total,
+          store: store as ReceiptData["store"],
+        };
+        printReceipt(receipt);
+      }
       setCart([]); setCustomer("");
       qc.invalidateQueries({ queryKey: ["inventory-for-sales"] });
       qc.invalidateQueries({ queryKey: ["inventory"] });
