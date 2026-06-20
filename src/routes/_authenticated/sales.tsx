@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Minus, Trash2, ShoppingCart, Receipt as ReceiptIcon } from "lucide-react";
+import { Plus, Minus, Trash2, ShoppingCart, Receipt as ReceiptIcon, ScanLine, Printer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,13 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { formatCurrency, formatDateTime } from "@/lib/format";
+import { printReceipt, type ReceiptData } from "@/lib/print-receipt";
 
 export const Route = createFileRoute("/_authenticated/sales")({
   head: () => ({ meta: [{ title: "Sales · Stockly" }] }),
   component: SalesPage,
 });
 
-type Inv = { id: string; name: string; sku: string | null; category: string; quantity: number; purchase_price: number; selling_price: number; store_id: string; branch_id: string | null };
+type Inv = { id: string; name: string; sku: string | null; barcode: string | null; category: string; quantity: number; purchase_price: number; selling_price: number; store_id: string; branch_id: string | null };
 type CartLine = { inventory_id: string; name: string; category: string; price: number; cost: number; quantity: number; available: number };
 type SaleRow = { id: string; sale_ref: string; total_amount: number; payment_method: string; customer_name: string | null; created_at: string };
 
@@ -25,6 +26,16 @@ function SalesPage() {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [customer, setCustomer] = useState("");
+  const [scan, setScan] = useState("");
+  const scanRef = useRef<HTMLInputElement>(null);
+
+  const { data: store } = useQuery({
+    queryKey: ["store-for-receipt"],
+    queryFn: async () => {
+      const { data } = await supabase.from("stores").select("name, address, phone, receipt_footer, tax_rate, currency").limit(1).maybeSingle();
+      return data;
+    },
+  });
 
   const { data: meBranch } = useQuery({
     queryKey: ["my-branch"],
@@ -39,7 +50,7 @@ function SalesPage() {
   const { data: inv = [] } = useQuery({
     queryKey: ["inventory-for-sales", meBranch?.branch_id],
     queryFn: async () => {
-      let q = supabase.from("inventories").select("id, name, sku, category, quantity, purchase_price, selling_price, store_id, branch_id").gt("quantity", 0).order("name");
+      let q = supabase.from("inventories").select("id, name, sku, barcode, category, quantity, purchase_price, selling_price, store_id, branch_id").gt("quantity", 0).order("name");
       if (meBranch?.branch_id) q = q.or(`branch_id.eq.${meBranch.branch_id},branch_id.is.null`);
       const { data, error } = await q;
       if (error) throw error;
@@ -70,20 +81,45 @@ function SalesPage() {
     });
   }
 
+  function handleScan(code: string) {
+    const c = code.trim();
+    if (!c) return;
+    const hit = inv.find((i) => i.barcode === c || i.sku === c);
+    if (!hit) { toast.error("No item with barcode/SKU: " + c); return; }
+    addToCart(hit);
+    setScan("");
+    scanRef.current?.focus();
+  }
+
   const checkout = useMutation({
     mutationFn: async () => {
       if (!cart.length) throw new Error("Cart is empty");
       const items = cart.map((c) => ({ inventory_id: c.inventory_id, quantity: c.quantity }));
+      const snapshot = { items: cart.map((c) => ({ name: c.name, quantity: c.quantity, price: c.price })), total, paymentMethod, customer };
       const { data, error } = await supabase.rpc("record_sale", {
         _items: items,
         _payment_method: paymentMethod,
         ...(customer ? { _customer_name: customer } : {}),
       });
       if (error) throw error;
-      return data as string;
+      const saleId = data as string;
+      const { data: sale } = await supabase.from("sales").select("sale_ref, created_at").eq("id", saleId).maybeSingle();
+      return { sale, snapshot };
     },
-    onSuccess: () => {
+    onSuccess: ({ sale, snapshot }) => {
       toast.success("Sale recorded");
+      if (sale && store) {
+        const receipt: ReceiptData = {
+          sale_ref: sale.sale_ref,
+          created_at: sale.created_at,
+          payment_method: snapshot.paymentMethod,
+          customer_name: snapshot.customer || null,
+          items: snapshot.items,
+          total: snapshot.total,
+          store: store as ReceiptData["store"],
+        };
+        printReceipt(receipt);
+      }
       setCart([]); setCustomer("");
       qc.invalidateQueries({ queryKey: ["inventory-for-sales"] });
       qc.invalidateQueries({ queryKey: ["inventory"] });
@@ -103,6 +139,19 @@ function SalesPage() {
       <div className="grid lg:grid-cols-3 gap-4">
         {/* Catalogue */}
         <div className="lg:col-span-2 rounded-2xl border bg-card shadow-card p-5">
+          <form
+            onSubmit={(e) => { e.preventDefault(); handleScan(scan); }}
+            className="mb-3 flex items-center gap-2"
+          >
+            <ScanLine className="h-4 w-4 text-muted-foreground" />
+            <Input
+              ref={scanRef}
+              placeholder="Scan barcode or type SKU + Enter"
+              value={scan}
+              onChange={(e) => setScan(e.target.value)}
+              autoFocus
+            />
+          </form>
           <Input placeholder="Search items…" value={search} onChange={(e) => setSearch(e.target.value)} className="mb-4" />
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-1">
             {filtered.length === 0 && <p className="col-span-full text-sm text-muted-foreground py-6 text-center">No items in stock</p>}
@@ -174,7 +223,24 @@ function SalesPage() {
                 <p className="font-medium">{s.sale_ref} · {s.customer_name || "Walk-in"}</p>
                 <p className="text-xs text-muted-foreground">{formatDateTime(s.created_at)} · {s.payment_method}</p>
               </div>
-              <span className="font-semibold">{formatCurrency(s.total_amount)}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">{formatCurrency(s.total_amount)}</span>
+                <Button size="icon" variant="ghost" title="Reprint receipt" onClick={async () => {
+                  const { data: full } = await supabase.from("sales").select("sale_ref, created_at, payment_method, customer_name, items, total_amount").eq("id", s.id).maybeSingle();
+                  if (!full || !store) { toast.error("Cannot load sale"); return; }
+                  printReceipt({
+                    sale_ref: full.sale_ref,
+                    created_at: full.created_at,
+                    payment_method: full.payment_method,
+                    customer_name: full.customer_name,
+                    items: ((full.items as Array<{ name: string; quantity: number; price: number }>) ?? []).map((i) => ({ name: i.name, quantity: i.quantity, price: Number(i.price) })),
+                    total: Number(full.total_amount),
+                    store: store as ReceiptData["store"],
+                  });
+                }}>
+                  <Printer className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>

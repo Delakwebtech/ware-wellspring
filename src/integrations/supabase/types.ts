@@ -236,6 +236,7 @@ export type Database = {
       inventories: {
         Row: {
           added_by: string | null
+          barcode: string | null
           branch_id: string | null
           category: string
           created_at: string
@@ -252,6 +253,7 @@ export type Database = {
         }
         Insert: {
           added_by?: string | null
+          barcode?: string | null
           branch_id?: string | null
           category?: string
           created_at?: string
@@ -268,6 +270,7 @@ export type Database = {
         }
         Update: {
           added_by?: string | null
+          barcode?: string | null
           branch_id?: string | null
           category?: string
           created_at?: string
@@ -546,6 +549,84 @@ export type Database = {
           },
         ]
       }
+      stock_transfers: {
+        Row: {
+          created_at: string
+          dest_inventory_id: string | null
+          from_branch_id: string
+          id: string
+          item_name: string
+          notes: string | null
+          quantity: number
+          source_inventory_id: string
+          store_id: string
+          to_branch_id: string
+          transferred_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          dest_inventory_id?: string | null
+          from_branch_id: string
+          id?: string
+          item_name: string
+          notes?: string | null
+          quantity: number
+          source_inventory_id: string
+          store_id: string
+          to_branch_id: string
+          transferred_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          dest_inventory_id?: string | null
+          from_branch_id?: string
+          id?: string
+          item_name?: string
+          notes?: string | null
+          quantity?: number
+          source_inventory_id?: string
+          store_id?: string
+          to_branch_id?: string
+          transferred_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_transfers_dest_inventory_id_fkey"
+            columns: ["dest_inventory_id"]
+            isOneToOne: false
+            referencedRelation: "inventories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transfers_from_branch_id_fkey"
+            columns: ["from_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transfers_source_inventory_id_fkey"
+            columns: ["source_inventory_id"]
+            isOneToOne: false
+            referencedRelation: "inventories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transfers_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transfers_to_branch_id_fkey"
+            columns: ["to_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           address: string | null
@@ -723,6 +804,15 @@ export type Database = {
           _reference: string
           _supplier_id: string
           _unit_cost: number
+        }
+        Returns: string
+      }
+      transfer_stock: {
+        Args: {
+          _notes: string
+          _quantity: number
+          _source_inventory_id: string
+          _to_branch_id: string
         }
         Returns: string
       }

@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/inventory")({
 });
 
 type Item = {
-  id: string; name: string; sku: string | null; category: string;
+  id: string; name: string; sku: string | null; barcode: string | null; category: string;
   quantity: number; reorder_level: number; purchase_price: number; selling_price: number;
   status: "available" | "low" | "out_of_stock"; store_id: string; branch_id: string | null;
 };
@@ -125,6 +125,7 @@ function ItemDialog({ editing, onClose }: { editing: Item | null; onClose: () =>
   const [form, setForm] = useState({
     name: editing?.name ?? "",
     sku: editing?.sku ?? "",
+    barcode: editing?.barcode ?? "",
     category: editing?.category ?? "General",
     quantity: editing?.quantity ?? 0,
     reorder_level: editing?.reorder_level ?? 5,
@@ -168,6 +169,10 @@ function ItemDialog({ editing, onClose }: { editing: Item | null; onClose: () =>
         <div className="grid grid-cols-2 gap-3">
           <div><Label>SKU</Label><Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} /></div>
           <div><Label>Category</Label><Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></div>
+        </div>
+        <div>
+          <Label>Barcode</Label>
+          <Input value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} placeholder="Scan or type" />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div><Label>Quantity</Label><Input type="number" min="0" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: +e.target.value })} /></div>
