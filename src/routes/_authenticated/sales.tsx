@@ -223,7 +223,24 @@ function SalesPage() {
                 <p className="font-medium">{s.sale_ref} · {s.customer_name || "Walk-in"}</p>
                 <p className="text-xs text-muted-foreground">{formatDateTime(s.created_at)} · {s.payment_method}</p>
               </div>
-              <span className="font-semibold">{formatCurrency(s.total_amount)}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">{formatCurrency(s.total_amount)}</span>
+                <Button size="icon" variant="ghost" title="Reprint receipt" onClick={async () => {
+                  const { data: full } = await supabase.from("sales").select("sale_ref, created_at, payment_method, customer_name, items, total_amount").eq("id", s.id).maybeSingle();
+                  if (!full || !store) { toast.error("Cannot load sale"); return; }
+                  printReceipt({
+                    sale_ref: full.sale_ref,
+                    created_at: full.created_at,
+                    payment_method: full.payment_method,
+                    customer_name: full.customer_name,
+                    items: ((full.items as Array<{ name: string; quantity: number; price: number }>) ?? []).map((i) => ({ name: i.name, quantity: i.quantity, price: Number(i.price) })),
+                    total: Number(full.total_amount),
+                    store: store as ReceiptData["store"],
+                  });
+                }}>
+                  <Printer className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
