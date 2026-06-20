@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard, Boxes, Receipt, AlertTriangle, RotateCcw, CreditCard,
   Users, BarChart3, Settings as SettingsIcon, LogOut, Menu, Building2,
-  Truck, PackagePlus, ScrollText,
+  Truck, PackagePlus, ScrollText, ArrowLeftRight,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ const nav = [
   { to: "/credit-sales", label: "Credit Sales", icon: CreditCard },
   { to: "/returns", label: "Returns", icon: RotateCcw },
   { to: "/damages", label: "Damages", icon: AlertTriangle },
+  { to: "/transfers", label: "Stock Transfers", icon: ArrowLeftRight },
   { to: "/suppliers", label: "Suppliers", icon: Truck },
   { to: "/reports", label: "Reports", icon: BarChart3 },
   { to: "/audit", label: "Audit Log", icon: ScrollText },
