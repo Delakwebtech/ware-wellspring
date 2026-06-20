@@ -170,6 +170,10 @@ function ItemDialog({ editing, onClose }: { editing: Item | null; onClose: () =>
           <div><Label>SKU</Label><Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} /></div>
           <div><Label>Category</Label><Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></div>
         </div>
+        <div>
+          <Label>Barcode</Label>
+          <Input value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} placeholder="Scan or type" />
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <div><Label>Quantity</Label><Input type="number" min="0" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: +e.target.value })} /></div>
           <div><Label>Reorder level</Label><Input type="number" min="0" value={form.reorder_level} onChange={(e) => setForm({ ...form, reorder_level: +e.target.value })} /></div>
