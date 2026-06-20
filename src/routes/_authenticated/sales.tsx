@@ -26,6 +26,16 @@ function SalesPage() {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [customer, setCustomer] = useState("");
+  const [scan, setScan] = useState("");
+  const scanRef = useRef<HTMLInputElement>(null);
+
+  const { data: store } = useQuery({
+    queryKey: ["store-for-receipt"],
+    queryFn: async () => {
+      const { data } = await supabase.from("stores").select("name, address, phone, receipt_footer, tax_rate, currency").limit(1).maybeSingle();
+      return data;
+    },
+  });
 
   const { data: meBranch } = useQuery({
     queryKey: ["my-branch"],
