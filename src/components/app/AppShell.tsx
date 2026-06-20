@@ -129,13 +129,15 @@ export default function AppShell({ children }: { children: ReactNode }) {
       )}
 
       <main className="flex-1 min-w-0">
-        <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between h-14 px-4 bg-background border-b">
-          <Button variant="ghost" size="icon" onClick={() => setOpen(true)}><Menu className="h-5 w-5" /></Button>
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-md bg-gradient-brand grid place-items-center"><Boxes className="h-4 w-4 text-primary-foreground" /></div>
-            <span className="font-display font-bold">Stockly</span>
-          </Link>
-          <span className="w-9" />
+        <header className="sticky top-0 z-30 flex items-center justify-between h-14 px-4 bg-background/80 backdrop-blur border-b">
+          <div className="flex items-center gap-2 lg:invisible">
+            <Button variant="ghost" size="icon" onClick={() => setOpen(true)} className="lg:hidden"><Menu className="h-5 w-5" /></Button>
+            <Link to="/dashboard" className="flex items-center gap-2 lg:hidden">
+              <div className="h-7 w-7 rounded-md bg-gradient-brand grid place-items-center"><Boxes className="h-4 w-4 text-primary-foreground" /></div>
+              <span className="font-display font-bold">Stockly</span>
+            </Link>
+          </div>
+          <NotificationBell />
         </header>
         <div className="p-4 sm:p-6 lg:p-8">{children}</div>
       </main>
