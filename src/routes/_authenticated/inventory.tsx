@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/inventory")({
 });
 
 type Item = {
-  id: string; name: string; sku: string | null; category: string;
+  id: string; name: string; sku: string | null; barcode: string | null; category: string;
   quantity: number; reorder_level: number; purchase_price: number; selling_price: number;
   status: "available" | "low" | "out_of_stock"; store_id: string; branch_id: string | null;
 };
