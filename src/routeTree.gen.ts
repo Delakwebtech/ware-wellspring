@@ -20,12 +20,17 @@ import { Route as AuthenticatedSalesRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedReturnsRouteImport } from './routes/_authenticated/returns'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedPurchasesRouteImport } from './routes/_authenticated/purchases'
+import { Route as AuthenticatedInvitesRouteImport } from './routes/_authenticated/invites'
 import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
+import { Route as AuthenticatedExpensesRouteImport } from './routes/_authenticated/expenses'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDamagesRouteImport } from './routes/_authenticated/damages'
+import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
 import { Route as AuthenticatedCreditSalesRouteImport } from './routes/_authenticated/credit-sales'
+import { Route as AuthenticatedCashDrawerRouteImport } from './routes/_authenticated/cash-drawer'
 import { Route as AuthenticatedBranchesRouteImport } from './routes/_authenticated/branches'
 import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
+import { Route as AuthenticatedAcceptInviteRouteImport } from './routes/_authenticated/accept-invite'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -81,9 +86,19 @@ const AuthenticatedPurchasesRoute = AuthenticatedPurchasesRouteImport.update({
   path: '/purchases',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedInvitesRoute = AuthenticatedInvitesRouteImport.update({
+  id: '/invites',
+  path: '/invites',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedInventoryRoute = AuthenticatedInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedExpensesRoute = AuthenticatedExpensesRouteImport.update({
+  id: '/expenses',
+  path: '/expenses',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -96,12 +111,22 @@ const AuthenticatedDamagesRoute = AuthenticatedDamagesRouteImport.update({
   path: '/damages',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCustomersRoute = AuthenticatedCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCreditSalesRoute =
   AuthenticatedCreditSalesRouteImport.update({
     id: '/credit-sales',
     path: '/credit-sales',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCashDrawerRoute = AuthenticatedCashDrawerRouteImport.update({
+  id: '/cash-drawer',
+  path: '/cash-drawer',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedBranchesRoute = AuthenticatedBranchesRouteImport.update({
   id: '/branches',
   path: '/branches',
@@ -112,16 +137,27 @@ const AuthenticatedAuditRoute = AuthenticatedAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAcceptInviteRoute =
+  AuthenticatedAcceptInviteRouteImport.update({
+    id: '/accept-invite',
+    path: '/accept-invite',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/accept-invite': typeof AuthenticatedAcceptInviteRoute
   '/audit': typeof AuthenticatedAuditRoute
   '/branches': typeof AuthenticatedBranchesRoute
+  '/cash-drawer': typeof AuthenticatedCashDrawerRoute
   '/credit-sales': typeof AuthenticatedCreditSalesRoute
+  '/customers': typeof AuthenticatedCustomersRoute
   '/damages': typeof AuthenticatedDamagesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/expenses': typeof AuthenticatedExpensesRoute
   '/inventory': typeof AuthenticatedInventoryRoute
+  '/invites': typeof AuthenticatedInvitesRoute
   '/purchases': typeof AuthenticatedPurchasesRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/returns': typeof AuthenticatedReturnsRoute
@@ -134,12 +170,17 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/accept-invite': typeof AuthenticatedAcceptInviteRoute
   '/audit': typeof AuthenticatedAuditRoute
   '/branches': typeof AuthenticatedBranchesRoute
+  '/cash-drawer': typeof AuthenticatedCashDrawerRoute
   '/credit-sales': typeof AuthenticatedCreditSalesRoute
+  '/customers': typeof AuthenticatedCustomersRoute
   '/damages': typeof AuthenticatedDamagesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/expenses': typeof AuthenticatedExpensesRoute
   '/inventory': typeof AuthenticatedInventoryRoute
+  '/invites': typeof AuthenticatedInvitesRoute
   '/purchases': typeof AuthenticatedPurchasesRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/returns': typeof AuthenticatedReturnsRoute
@@ -154,12 +195,17 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/accept-invite': typeof AuthenticatedAcceptInviteRoute
   '/_authenticated/audit': typeof AuthenticatedAuditRoute
   '/_authenticated/branches': typeof AuthenticatedBranchesRoute
+  '/_authenticated/cash-drawer': typeof AuthenticatedCashDrawerRoute
   '/_authenticated/credit-sales': typeof AuthenticatedCreditSalesRoute
+  '/_authenticated/customers': typeof AuthenticatedCustomersRoute
   '/_authenticated/damages': typeof AuthenticatedDamagesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/expenses': typeof AuthenticatedExpensesRoute
   '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
+  '/_authenticated/invites': typeof AuthenticatedInvitesRoute
   '/_authenticated/purchases': typeof AuthenticatedPurchasesRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/returns': typeof AuthenticatedReturnsRoute
@@ -174,12 +220,17 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/accept-invite'
     | '/audit'
     | '/branches'
+    | '/cash-drawer'
     | '/credit-sales'
+    | '/customers'
     | '/damages'
     | '/dashboard'
+    | '/expenses'
     | '/inventory'
+    | '/invites'
     | '/purchases'
     | '/reports'
     | '/returns'
@@ -192,12 +243,17 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/accept-invite'
     | '/audit'
     | '/branches'
+    | '/cash-drawer'
     | '/credit-sales'
+    | '/customers'
     | '/damages'
     | '/dashboard'
+    | '/expenses'
     | '/inventory'
+    | '/invites'
     | '/purchases'
     | '/reports'
     | '/returns'
@@ -211,12 +267,17 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/accept-invite'
     | '/_authenticated/audit'
     | '/_authenticated/branches'
+    | '/_authenticated/cash-drawer'
     | '/_authenticated/credit-sales'
+    | '/_authenticated/customers'
     | '/_authenticated/damages'
     | '/_authenticated/dashboard'
+    | '/_authenticated/expenses'
     | '/_authenticated/inventory'
+    | '/_authenticated/invites'
     | '/_authenticated/purchases'
     | '/_authenticated/reports'
     | '/_authenticated/returns'
@@ -312,11 +373,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPurchasesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/invites': {
+      id: '/_authenticated/invites'
+      path: '/invites'
+      fullPath: '/invites'
+      preLoaderRoute: typeof AuthenticatedInvitesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/inventory': {
       id: '/_authenticated/inventory'
       path: '/inventory'
       fullPath: '/inventory'
       preLoaderRoute: typeof AuthenticatedInventoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/expenses': {
+      id: '/_authenticated/expenses'
+      path: '/expenses'
+      fullPath: '/expenses'
+      preLoaderRoute: typeof AuthenticatedExpensesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -333,11 +408,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDamagesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/customers': {
+      id: '/_authenticated/customers'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof AuthenticatedCustomersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/credit-sales': {
       id: '/_authenticated/credit-sales'
       path: '/credit-sales'
       fullPath: '/credit-sales'
       preLoaderRoute: typeof AuthenticatedCreditSalesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/cash-drawer': {
+      id: '/_authenticated/cash-drawer'
+      path: '/cash-drawer'
+      fullPath: '/cash-drawer'
+      preLoaderRoute: typeof AuthenticatedCashDrawerRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/branches': {
@@ -354,16 +443,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAuditRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/accept-invite': {
+      id: '/_authenticated/accept-invite'
+      path: '/accept-invite'
+      fullPath: '/accept-invite'
+      preLoaderRoute: typeof AuthenticatedAcceptInviteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAcceptInviteRoute: typeof AuthenticatedAcceptInviteRoute
   AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
   AuthenticatedBranchesRoute: typeof AuthenticatedBranchesRoute
+  AuthenticatedCashDrawerRoute: typeof AuthenticatedCashDrawerRoute
   AuthenticatedCreditSalesRoute: typeof AuthenticatedCreditSalesRoute
+  AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
   AuthenticatedDamagesRoute: typeof AuthenticatedDamagesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedExpensesRoute: typeof AuthenticatedExpensesRoute
   AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
+  AuthenticatedInvitesRoute: typeof AuthenticatedInvitesRoute
   AuthenticatedPurchasesRoute: typeof AuthenticatedPurchasesRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedReturnsRoute: typeof AuthenticatedReturnsRoute
@@ -375,12 +476,17 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAcceptInviteRoute: AuthenticatedAcceptInviteRoute,
   AuthenticatedAuditRoute: AuthenticatedAuditRoute,
   AuthenticatedBranchesRoute: AuthenticatedBranchesRoute,
+  AuthenticatedCashDrawerRoute: AuthenticatedCashDrawerRoute,
   AuthenticatedCreditSalesRoute: AuthenticatedCreditSalesRoute,
+  AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
   AuthenticatedDamagesRoute: AuthenticatedDamagesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedExpensesRoute: AuthenticatedExpensesRoute,
   AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
+  AuthenticatedInvitesRoute: AuthenticatedInvitesRoute,
   AuthenticatedPurchasesRoute: AuthenticatedPurchasesRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedReturnsRoute: AuthenticatedReturnsRoute,

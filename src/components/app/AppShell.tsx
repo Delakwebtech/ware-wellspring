@@ -4,13 +4,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard, Boxes, Receipt, AlertTriangle, RotateCcw, CreditCard,
   Users, BarChart3, Settings as SettingsIcon, LogOut, Menu, Building2,
-  Truck, PackagePlus, ScrollText, ArrowLeftRight,
+  Truck, PackagePlus, ScrollText, ArrowLeftRight, Wallet, Banknote, UserCircle2, Mail,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { setActiveCurrency } from "@/lib/format";
+import { NotificationBell } from "./NotificationBell";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -21,13 +22,18 @@ const nav = [
   { to: "/returns", label: "Returns", icon: RotateCcw },
   { to: "/damages", label: "Damages", icon: AlertTriangle },
   { to: "/transfers", label: "Stock Transfers", icon: ArrowLeftRight },
+  { to: "/customers", label: "Customers", icon: UserCircle2 },
   { to: "/suppliers", label: "Suppliers", icon: Truck },
+  { to: "/expenses", label: "Expenses", icon: Wallet },
+  { to: "/cash-drawer", label: "Cash Drawer", icon: Banknote },
   { to: "/reports", label: "Reports", icon: BarChart3 },
   { to: "/audit", label: "Audit Log", icon: ScrollText },
   { to: "/branches", label: "Branches", icon: Building2 },
   { to: "/users", label: "Users", icon: Users },
+  { to: "/invites", label: "Invite Staff", icon: Mail },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ] as const;
+
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -123,13 +129,15 @@ export default function AppShell({ children }: { children: ReactNode }) {
       )}
 
       <main className="flex-1 min-w-0">
-        <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between h-14 px-4 bg-background border-b">
-          <Button variant="ghost" size="icon" onClick={() => setOpen(true)}><Menu className="h-5 w-5" /></Button>
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-md bg-gradient-brand grid place-items-center"><Boxes className="h-4 w-4 text-primary-foreground" /></div>
-            <span className="font-display font-bold">Stockly</span>
-          </Link>
-          <span className="w-9" />
+        <header className="sticky top-0 z-30 flex items-center justify-between h-14 px-4 bg-background/80 backdrop-blur border-b">
+          <div className="flex items-center gap-2 lg:invisible">
+            <Button variant="ghost" size="icon" onClick={() => setOpen(true)} className="lg:hidden"><Menu className="h-5 w-5" /></Button>
+            <Link to="/dashboard" className="flex items-center gap-2 lg:hidden">
+              <div className="h-7 w-7 rounded-md bg-gradient-brand grid place-items-center"><Boxes className="h-4 w-4 text-primary-foreground" /></div>
+              <span className="font-display font-bold">Stockly</span>
+            </Link>
+          </div>
+          <NotificationBell />
         </header>
         <div className="p-4 sm:p-6 lg:p-8">{children}</div>
       </main>
