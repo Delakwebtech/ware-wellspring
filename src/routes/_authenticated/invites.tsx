@@ -47,7 +47,7 @@ function InvitesPage() {
     mutationFn: async () => {
       if (!form.email) throw new Error("Email required");
       const { data, error } = await supabase.rpc("create_invite", {
-        _email: form.email, _role: form.role, _branch_id: form.branch_id || null,
+        _email: form.email, _role: form.role, _branch_id: (form.branch_id || null) as string,
       });
       if (error) throw error;
       return data as string;

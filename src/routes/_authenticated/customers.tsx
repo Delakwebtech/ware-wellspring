@@ -44,7 +44,7 @@ function CustomersPage() {
       } else {
         const { data: { user } } = await supabase.auth.getUser();
         const { data: prof } = await supabase.from("profiles").select("store_id").eq("id", user!.id).maybeSingle();
-        const { error } = await supabase.from("customers").insert({ ...payload, store_id: prof!.store_id, created_by: user!.id });
+        const { error } = await supabase.from("customers").insert({ ...payload, store_id: prof!.store_id as string, created_by: user!.id });
         if (error) throw error;
       }
     },
