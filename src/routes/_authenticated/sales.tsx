@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/sales")({
   component: SalesPage,
 });
 
-type Inv = { id: string; name: string; sku: string | null; category: string; quantity: number; purchase_price: number; selling_price: number; store_id: string; branch_id: string | null };
+type Inv = { id: string; name: string; sku: string | null; barcode: string | null; category: string; quantity: number; purchase_price: number; selling_price: number; store_id: string; branch_id: string | null };
 type CartLine = { inventory_id: string; name: string; category: string; price: number; cost: number; quantity: number; available: number };
 type SaleRow = { id: string; sale_ref: string; total_amount: number; payment_method: string; customer_name: string | null; created_at: string };
 
