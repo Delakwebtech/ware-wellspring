@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { setActiveCurrency } from "@/lib/format";
 import { NotificationBell } from "./NotificationBell";
+import { ThemeToggle } from "./ThemeToggle";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -137,7 +138,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
               <span className="font-display font-bold">Stockly</span>
             </Link>
           </div>
-          <NotificationBell />
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <NotificationBell />
+          </div>
         </header>
         <div className="p-4 sm:p-6 lg:p-8">{children}</div>
       </main>
