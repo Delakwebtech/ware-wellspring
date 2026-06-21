@@ -104,7 +104,34 @@ function SettingsPage() {
           <div><Label>Tax / VAT %</Label><Input type="number" step="0.01" min="0" value={store.tax_percent} onChange={(e) => setStore({ ...store, tax_percent: +e.target.value })} /></div>
         </div>
         <div><Label>Address</Label><Input value={store.address} onChange={(e) => setStore({ ...store, address: e.target.value })} /></div>
-        <div><Label>Logo URL</Label><Input value={store.logo_url} onChange={(e) => setStore({ ...store, logo_url: e.target.value })} placeholder="https://…" /></div>
+        <div>
+          <Label>Store logo</Label>
+          <div className="flex items-center gap-3 mt-1">
+            {store.logo_url && (
+              <img src={store.logo_url} alt="Logo" className="h-14 w-14 rounded-lg object-cover border" />
+            )}
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file || !data?.user) return;
+                const ext = file.name.split(".").pop() || "png";
+                const path = `${data.user.id}/logo-${Date.now()}.${ext}`;
+                const up = await supabase.storage.from("branding").upload(path, file, { upsert: true, contentType: file.type });
+                if (up.error) { toast.error(up.error.message); return; }
+                const signed = await supabase.storage.from("branding").createSignedUrl(path, 60 * 60 * 24 * 365);
+                if (signed.error) { toast.error(signed.error.message); return; }
+                setStore((s) => ({ ...s, logo_url: signed.data.signedUrl }));
+                toast.success("Logo uploaded — remember to Save");
+              }}
+              className="max-w-xs"
+            />
+            {store.logo_url && (
+              <Button type="button" variant="ghost" size="sm" onClick={() => setStore({ ...store, logo_url: "" })}>Remove</Button>
+            )}
+          </div>
+        </div>
         <div><Label>Receipt footer</Label><Textarea rows={3} value={store.receipt_footer} onChange={(e) => setStore({ ...store, receipt_footer: e.target.value })} placeholder="Thank you for shopping with us!" /></div>
       </section>
 
