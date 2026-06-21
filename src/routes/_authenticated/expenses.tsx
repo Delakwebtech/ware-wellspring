@@ -17,12 +17,14 @@ export const Route = createFileRoute("/_authenticated/expenses")({
 
 const CATEGORIES = ["Rent", "Utilities", "Salaries", "Supplies", "Transport", "Marketing", "Maintenance", "Bank Fees", "Other"];
 
-type Expense = { id: string; category: string; description: string | null; amount: number; paid_via: string; expense_date: string; created_at: string };
+type Expense = { id: string; category: string; description: string | null; amount: number; paid_via: string; expense_date: string; created_at: string; receipt_url?: string | null };
 
 function ExpensesPage() {
   const qc = useQueryClient();
   const today = new Date().toISOString().slice(0, 10);
   const [form, setForm] = useState({ category: "Rent", description: "", amount: 0, paid_via: "cash", expense_date: today });
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const { data: expenses = [] } = useQuery({
     queryKey: ["expenses"],
@@ -36,7 +38,7 @@ function ExpensesPage() {
   const add = useMutation({
     mutationFn: async () => {
       if (!form.amount || form.amount <= 0) throw new Error("Enter an amount");
-      const { error } = await supabase.rpc("record_expense", {
+      const { data: rpcData, error } = await supabase.rpc("record_expense", {
         _category: form.category,
         _description: form.description,
         _amount: form.amount,
@@ -44,13 +46,30 @@ function ExpensesPage() {
         _expense_date: form.expense_date,
       });
       if (error) throw error;
+      if (receiptFile) {
+        setUploading(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const ext = receiptFile.name.split(".").pop() || "bin";
+          const path = `${user.id}/expense-${Date.now()}.${ext}`;
+          const up = await supabase.storage.from("receipts").upload(path, receiptFile, { contentType: receiptFile.type });
+          if (!up.error && rpcData) {
+            const signed = await supabase.storage.from("receipts").createSignedUrl(path, 60 * 60 * 24 * 365);
+            if (signed.data) {
+              await supabase.from("expenses").update({ receipt_url: signed.data.signedUrl }).eq("id", rpcData as string);
+            }
+          }
+        }
+        setUploading(false);
+      }
     },
     onSuccess: () => {
       toast.success("Expense recorded");
       setForm({ ...form, description: "", amount: 0 });
+      setReceiptFile(null);
       qc.invalidateQueries({ queryKey: ["expenses"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => { setUploading(false); toast.error(e.message); },
   });
 
   const del = useMutation({
