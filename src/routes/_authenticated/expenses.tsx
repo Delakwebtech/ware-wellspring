@@ -131,7 +131,12 @@ function ExpensesPage() {
             </div>
           </div>
           <div><Label>Date</Label><Input type="date" value={form.expense_date} onChange={(e) => setForm({ ...form, expense_date: e.target.value })} /></div>
-          <Button type="submit" variant="hero" className="w-full" disabled={add.isPending}>{add.isPending ? "Saving…" : "Record expense"}</Button>
+          <div>
+            <Label>Receipt (optional)</Label>
+            <Input type="file" accept="image/*,application/pdf" onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)} />
+            {receiptFile && <p className="text-xs text-muted-foreground mt-1 truncate">{receiptFile.name}</p>}
+          </div>
+          <Button type="submit" variant="hero" className="w-full" disabled={add.isPending || uploading}>{add.isPending || uploading ? "Saving…" : "Record expense"}</Button>
         </form>
 
         <div className="lg:col-span-2 rounded-2xl border bg-card shadow-card p-5">
@@ -145,6 +150,7 @@ function ExpensesPage() {
                   <p className="text-xs text-muted-foreground">{formatDate(e.expense_date)} · {e.paid_via}</p>
                 </div>
                 <div className="flex items-center gap-2">
+                  {e.receipt_url && <a href={e.receipt_url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">Receipt</a>}
                   <span className="font-semibold">{formatCurrency(e.amount)}</span>
                   <Button size="icon" variant="ghost" onClick={() => { if (confirm("Delete expense?")) del.mutate(e.id); }}><Trash2 className="h-4 w-4" /></Button>
                 </div>
