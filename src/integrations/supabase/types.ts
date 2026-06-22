@@ -60,6 +60,7 @@ export type Database = {
           address: string | null
           created_at: string
           id: string
+          legacy_id: number | null
           name: string
           store_id: string
           updated_at: string
@@ -68,6 +69,7 @@ export type Database = {
           address?: string | null
           created_at?: string
           id?: string
+          legacy_id?: number | null
           name: string
           store_id: string
           updated_at?: string
@@ -76,6 +78,7 @@ export type Database = {
           address?: string | null
           created_at?: string
           id?: string
+          legacy_id?: number | null
           name?: string
           store_id?: string
           updated_at?: string
@@ -181,6 +184,7 @@ export type Database = {
           due_date: string | null
           id: string
           inventory_id: string | null
+          legacy_id: number | null
           price: number
           quantity: number
           status: Database["public"]["Enums"]["credit_status"]
@@ -200,6 +204,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           inventory_id?: string | null
+          legacy_id?: number | null
           price: number
           quantity: number
           status?: Database["public"]["Enums"]["credit_status"]
@@ -219,6 +224,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           inventory_id?: string | null
+          legacy_id?: number | null
           price?: number
           quantity?: number
           status?: Database["public"]["Enums"]["credit_status"]
@@ -315,6 +321,7 @@ export type Database = {
           created_at: string
           id: string
           inventory_id: string | null
+          legacy_id: number | null
           name: string
           quantity: number
           reason: string
@@ -328,6 +335,7 @@ export type Database = {
           created_at?: string
           id?: string
           inventory_id?: string | null
+          legacy_id?: number | null
           name: string
           quantity: number
           reason: string
@@ -341,6 +349,7 @@ export type Database = {
           created_at?: string
           id?: string
           inventory_id?: string | null
+          legacy_id?: number | null
           name?: string
           quantity?: number
           reason?: string
@@ -439,6 +448,7 @@ export type Database = {
           category: string
           created_at: string
           id: string
+          legacy_id: number | null
           name: string
           purchase_price: number
           quantity: number
@@ -456,6 +466,7 @@ export type Database = {
           category?: string
           created_at?: string
           id?: string
+          legacy_id?: number | null
           name: string
           purchase_price?: number
           quantity?: number
@@ -473,6 +484,7 @@ export type Database = {
           category?: string
           created_at?: string
           id?: string
+          legacy_id?: number | null
           name?: string
           purchase_price?: number
           quantity?: number
@@ -552,6 +564,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          legacy_id: number | null
           store_id: string | null
           updated_at: string
         }
@@ -562,6 +575,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          legacy_id?: number | null
           store_id?: string | null
           updated_at?: string
         }
@@ -572,6 +586,7 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          legacy_id?: number | null
           store_id?: string | null
           updated_at?: string
         }
@@ -602,6 +617,7 @@ export type Database = {
           customer_name: string | null
           id: string
           items: Json
+          legacy_id: number | null
           payment_method: string
           sale_ref: string
           store_id: string
@@ -616,6 +632,7 @@ export type Database = {
           customer_name?: string | null
           id?: string
           items: Json
+          legacy_id?: number | null
           payment_method?: string
           sale_ref: string
           store_id: string
@@ -630,6 +647,7 @@ export type Database = {
           customer_name?: string | null
           id?: string
           items?: Json
+          legacy_id?: number | null
           payment_method?: string
           sale_ref?: string
           store_id?: string
@@ -665,6 +683,7 @@ export type Database = {
           created_at: string
           id: string
           inventory_id: string | null
+          legacy_id: number | null
           processed_by: string | null
           quantity: number
           reason: string
@@ -677,6 +696,7 @@ export type Database = {
           created_at?: string
           id?: string
           inventory_id?: string | null
+          legacy_id?: number | null
           processed_by?: string | null
           quantity: number
           reason: string
@@ -689,6 +709,7 @@ export type Database = {
           created_at?: string
           id?: string
           inventory_id?: string | null
+          legacy_id?: number | null
           processed_by?: string | null
           quantity?: number
           reason?: string
@@ -945,6 +966,7 @@ export type Database = {
           created_at: string
           currency: string
           id: string
+          legacy_id: number | null
           logo: string | null
           logo_url: string | null
           name: string
@@ -959,6 +981,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          legacy_id?: number | null
           logo?: string | null
           logo_url?: string | null
           name: string
@@ -973,6 +996,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          legacy_id?: number | null
           logo?: string | null
           logo_url?: string | null
           name?: string
