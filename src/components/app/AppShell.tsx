@@ -32,6 +32,7 @@ const nav = [
   { to: "/branches", label: "Branches", icon: Building2 },
   { to: "/users", label: "Users", icon: Users },
   { to: "/invites", label: "Invite Staff", icon: Mail },
+  { to: "/stores", label: "All Stores", icon: Building2, superOnly: true },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ] as const;
 
@@ -47,14 +48,19 @@ export default function AppShell({ children }: { children: ReactNode }) {
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
-      const [{ data: profile }, { data: roles }, { data: store }] = await Promise.all([
+      const [{ data: profile }, { data: roles }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", user.id),
-        supabase.from("stores").select("*").limit(1).maybeSingle(),
       ]);
+      let store = null;
+      if (profile?.store_id) {
+        const { data } = await supabase.from("stores").select("*").eq("id", profile.store_id).maybeSingle();
+        store = data;
+      }
       return { user, profile, roles: (roles ?? []).map((r) => r.role), store };
     },
   });
+  const isSuper = (me?.roles ?? []).includes("superadmin");
 
   useEffect(() => { setActiveCurrency(me?.store?.currency); }, [me?.store?.currency]);
 
@@ -79,7 +85,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         <p className="px-2 mt-1 text-sm font-semibold truncate">{me?.store?.name ?? "—"}</p>
       </div>
       <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-        {nav.map((n) => {
+        {nav.filter((n) => !("superOnly" in n && n.superOnly) || isSuper).map((n) => {
           const active = pathname === n.to || pathname.startsWith(n.to + "/");
           return (
             <Link
