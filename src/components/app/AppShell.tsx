@@ -153,8 +153,12 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-2 lg:invisible">
             <Button variant="ghost" size="icon" onClick={() => setOpen(true)} className="lg:hidden"><Menu className="h-5 w-5" /></Button>
             <Link to="/dashboard" className="flex items-center gap-2 lg:hidden">
-              <div className="h-7 w-7 rounded-md bg-gradient-brand grid place-items-center"><Boxes className="h-4 w-4 text-primary-foreground" /></div>
-              <span className="font-display font-bold">Stockly</span>
+              {brandLogo ? (
+                <img src={brandLogo} alt={brandName} className="h-7 w-7 rounded-md object-cover" />
+              ) : (
+                <div className="h-7 w-7 rounded-md bg-gradient-brand grid place-items-center"><Boxes className="h-4 w-4 text-primary-foreground" /></div>
+              )}
+              <span className="font-display font-bold truncate max-w-[140px]">{brandName}</span>
             </Link>
           </div>
           <div className="flex items-center gap-1">
