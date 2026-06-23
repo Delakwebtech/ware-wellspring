@@ -75,13 +75,20 @@ export default function AppShell({ children }: { children: ReactNode }) {
     navigate({ to: "/auth", replace: true });
   }
 
+  const brandName = isSuper ? "Stockly" : (me?.store?.name ?? "Stockly");
+  const brandLogo = isSuper ? null : (me?.store?.logo ?? null);
+
   const Sidebar = (
     <aside className="flex h-full w-64 flex-col bg-sidebar text-sidebar-foreground">
       <Link to="/dashboard" className="flex items-center gap-2 px-5 h-16 border-b border-sidebar-border">
-        <div className="h-9 w-9 rounded-lg bg-gradient-brand grid place-items-center shadow-brand">
-          <Boxes className="h-5 w-5 text-primary-foreground" />
-        </div>
-        <span className="font-display text-lg font-bold">Stockly</span>
+        {brandLogo ? (
+          <img src={brandLogo} alt={brandName} className="h-9 w-9 rounded-lg object-cover shadow-brand" />
+        ) : (
+          <div className="h-9 w-9 rounded-lg bg-gradient-brand grid place-items-center shadow-brand">
+            <Boxes className="h-5 w-5 text-primary-foreground" />
+          </div>
+        )}
+        <span className="font-display text-lg font-bold truncate">{brandName}</span>
       </Link>
       <div className="px-3 py-4 border-b border-sidebar-border">
         <p className="text-[11px] uppercase tracking-wider text-sidebar-foreground/60 px-2">Store</p>
