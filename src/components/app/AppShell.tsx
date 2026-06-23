@@ -88,7 +88,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
         <p className="px-2 mt-1 text-sm font-semibold truncate">{me?.store?.name ?? "—"}</p>
       </div>
       <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-        {nav.filter((n) => !("superOnly" in n && n.superOnly) || isSuper).map((n) => {
+        {nav
+          .filter((n) => (!("superOnly" in n && n.superOnly) || isSuper))
+          .filter((n) => (!isSuper || SUPER_ALLOWED.has(n.to)))
+          .map((n) => {
           const active = pathname === n.to || pathname.startsWith(n.to + "/");
           return (
             <Link
