@@ -36,6 +36,9 @@ const nav = [
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ] as const;
 
+// Platform superadmins see only metadata management pages
+const SUPER_ALLOWED = new Set<string>(["/stores", "/settings"]);
+
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
