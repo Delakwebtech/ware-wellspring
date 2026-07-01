@@ -960,6 +960,56 @@ export type Database = {
           },
         ]
       }
+      store_subscriptions: {
+        Row: {
+          amount: number | null
+          created_at: string
+          currency: string
+          expires_at: string | null
+          id: string
+          notes: string | null
+          plan: string
+          started_at: string
+          status: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          currency?: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          plan?: string
+          started_at?: string
+          status?: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          currency?: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          plan?: string
+          started_at?: string
+          status?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_subscriptions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           address: string | null
@@ -972,6 +1022,7 @@ export type Database = {
           name: string
           phone: string | null
           receipt_footer: string | null
+          status: string
           subdomain: string | null
           tax_percent: number
           updated_at: string
@@ -987,6 +1038,7 @@ export type Database = {
           name: string
           phone?: string | null
           receipt_footer?: string | null
+          status?: string
           subdomain?: string | null
           tax_percent?: number
           updated_at?: string
@@ -1002,11 +1054,69 @@ export type Database = {
           name?: string
           phone?: string | null
           receipt_footer?: string | null
+          status?: string
           subdomain?: string | null
           tax_percent?: number
           updated_at?: string
         }
         Relationships: []
+      }
+      subscription_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          method: string | null
+          notes: string | null
+          paid_at: string
+          reference: string | null
+          store_id: string
+          subscription_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          method?: string | null
+          notes?: string | null
+          paid_at?: string
+          reference?: string | null
+          store_id: string
+          subscription_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          method?: string | null
+          notes?: string | null
+          paid_at?: string
+          reference?: string | null
+          store_id?: string
+          subscription_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_payments_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "store_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suppliers: {
         Row: {
