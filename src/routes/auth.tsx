@@ -55,16 +55,28 @@ function AuthPage() {
         if (error) throw error;
         toast.success("Welcome back");
       } else {
+        const cleanSub = subdomain.toLowerCase().replace(/[^a-z0-9-]/g, "");
+        if (!cleanSub || cleanSub.length < 3) throw new Error("Subdomain must be at least 3 characters (a-z, 0-9, -)");
+        // Check uniqueness
+        const { data: existing } = await supabase.from("stores").select("id").ilike("subdomain", cleanSub).maybeSingle();
+        if (existing) throw new Error("That subdomain is already taken");
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { full_name: fullName, store_name: storeName },
+            data: {
+              full_name: fullName,
+              store_name: storeName,
+              subdomain: cleanSub,
+              phone,
+              country,
+              business_type: businessType,
+            },
           },
         });
         if (error) throw error;
-        toast.success("Account created — signing you in");
+        toast.success("Account created — you'll receive an email once your store is activated by the platform admin.");
       }
       router.invalidate();
     } catch (err) {
