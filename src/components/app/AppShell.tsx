@@ -33,11 +33,12 @@ const nav = [
   { to: "/users", label: "Users", icon: Users },
   { to: "/invites", label: "Invite Staff", icon: Mail },
   { to: "/stores", label: "All Stores", icon: Building2, superOnly: true },
+  { to: "/subscriptions", label: "Subscriptions", icon: CreditCard, superOnly: true },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ] as const;
 
 // Platform superadmins see only metadata management pages
-const SUPER_ALLOWED = new Set<string>(["/stores", "/settings"]);
+const SUPER_ALLOWED = new Set<string>(["/stores", "/subscriptions", "/settings"]);
 
 
 export default function AppShell({ children }: { children: ReactNode }) {
