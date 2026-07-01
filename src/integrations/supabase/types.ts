@@ -1012,7 +1012,10 @@ export type Database = {
       }
       stores: {
         Row: {
+          activated_at: string | null
           address: string | null
+          business_type: string | null
+          country: string | null
           created_at: string
           currency: string
           id: string
@@ -1020,6 +1023,7 @@ export type Database = {
           logo: string | null
           logo_url: string | null
           name: string
+          owner_email: string | null
           phone: string | null
           receipt_footer: string | null
           status: string
@@ -1028,7 +1032,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          activated_at?: string | null
           address?: string | null
+          business_type?: string | null
+          country?: string | null
           created_at?: string
           currency?: string
           id?: string
@@ -1036,6 +1043,7 @@ export type Database = {
           logo?: string | null
           logo_url?: string | null
           name: string
+          owner_email?: string | null
           phone?: string | null
           receipt_footer?: string | null
           status?: string
@@ -1044,7 +1052,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          activated_at?: string | null
           address?: string | null
+          business_type?: string | null
+          country?: string | null
           created_at?: string
           currency?: string
           id?: string
@@ -1052,6 +1063,7 @@ export type Database = {
           logo?: string | null
           logo_url?: string | null
           name?: string
+          owner_email?: string | null
           phone?: string | null
           receipt_footer?: string | null
           status?: string
