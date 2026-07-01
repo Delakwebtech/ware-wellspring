@@ -117,19 +117,52 @@ function AuthPage() {
           </Link>
           <h2 className="font-display text-3xl font-bold">{mode === "signin" ? "Welcome back" : "Create your store"}</h2>
           <p className="mt-2 text-muted-foreground text-sm">
-            {mode === "signin" ? "Sign in to your Stockly account" : "Your first sign-up creates your store and makes you superadmin."}
+            {mode === "signin" ? "Sign in to your Stockly account" : "Fill in your store details. Our team will activate your account and email you your login URL."}
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-4">
             {mode === "signup" && (
               <>
                 <div>
-                  <Label htmlFor="fullName">Your name</Label>
+                  <Label htmlFor="fullName">Your full name</Label>
                   <Input id="fullName" required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Jane Adesina" />
                 </div>
                 <div>
                   <Label htmlFor="storeName">Store name</Label>
                   <Input id="storeName" required value={storeName} onChange={(e) => setStoreName(e.target.value)} placeholder="Jane's Mart" />
+                </div>
+                <div>
+                  <Label htmlFor="subdomain">Desired subdomain</Label>
+                  <div className="flex items-center gap-2">
+                    <Input id="subdomain" required minLength={3} value={subdomain}
+                      onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                      placeholder="janesmart" />
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">.yourdomain.com</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input id="phone" required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+234…" />
+                  </div>
+                  <div>
+                    <Label htmlFor="country">Country</Label>
+                    <Input id="country" required value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Nigeria" />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="businessType">Business type</Label>
+                  <select id="businessType" required value={businessType} onChange={(e) => setBusinessType(e.target.value)}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-sm">
+                    <option value="">Select…</option>
+                    <option value="retail">Retail / Supermarket</option>
+                    <option value="pharmacy">Pharmacy</option>
+                    <option value="restaurant">Restaurant / Food</option>
+                    <option value="fashion">Fashion / Boutique</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="wholesale">Wholesale / Distribution</option>
+                    <option value="other">Other</option>
+                  </select>
                 </div>
               </>
             )}
