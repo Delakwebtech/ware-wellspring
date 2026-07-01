@@ -28,6 +28,10 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [storeName, setStoreName] = useState("");
+  const [subdomain, setSubdomain] = useState("");
+  const [phone, setPhone] = useState("");
+  const [country, setCountry] = useState("");
+  const [businessType, setBusinessType] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const router = useRouter();
@@ -51,16 +55,28 @@ function AuthPage() {
         if (error) throw error;
         toast.success("Welcome back");
       } else {
+        const cleanSub = subdomain.toLowerCase().replace(/[^a-z0-9-]/g, "");
+        if (!cleanSub || cleanSub.length < 3) throw new Error("Subdomain must be at least 3 characters (a-z, 0-9, -)");
+        // Check uniqueness
+        const { data: existing } = await supabase.from("stores").select("id").ilike("subdomain", cleanSub).maybeSingle();
+        if (existing) throw new Error("That subdomain is already taken");
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { full_name: fullName, store_name: storeName },
+            data: {
+              full_name: fullName,
+              store_name: storeName,
+              subdomain: cleanSub,
+              phone,
+              country,
+              business_type: businessType,
+            },
           },
         });
         if (error) throw error;
-        toast.success("Account created — signing you in");
+        toast.success("Account created — you'll receive an email once your store is activated by the platform admin.");
       }
       router.invalidate();
     } catch (err) {
@@ -101,19 +117,52 @@ function AuthPage() {
           </Link>
           <h2 className="font-display text-3xl font-bold">{mode === "signin" ? "Welcome back" : "Create your store"}</h2>
           <p className="mt-2 text-muted-foreground text-sm">
-            {mode === "signin" ? "Sign in to your Stockly account" : "Your first sign-up creates your store and makes you superadmin."}
+            {mode === "signin" ? "Sign in to your Stockly account" : "Fill in your store details. Our team will activate your account and email you your login URL."}
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-4">
             {mode === "signup" && (
               <>
                 <div>
-                  <Label htmlFor="fullName">Your name</Label>
+                  <Label htmlFor="fullName">Your full name</Label>
                   <Input id="fullName" required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Jane Adesina" />
                 </div>
                 <div>
                   <Label htmlFor="storeName">Store name</Label>
                   <Input id="storeName" required value={storeName} onChange={(e) => setStoreName(e.target.value)} placeholder="Jane's Mart" />
+                </div>
+                <div>
+                  <Label htmlFor="subdomain">Desired subdomain</Label>
+                  <div className="flex items-center gap-2">
+                    <Input id="subdomain" required minLength={3} value={subdomain}
+                      onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                      placeholder="janesmart" />
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">.yourdomain.com</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input id="phone" required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+234…" />
+                  </div>
+                  <div>
+                    <Label htmlFor="country">Country</Label>
+                    <Input id="country" required value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Nigeria" />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="businessType">Business type</Label>
+                  <select id="businessType" required value={businessType} onChange={(e) => setBusinessType(e.target.value)}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-sm">
+                    <option value="">Select…</option>
+                    <option value="retail">Retail / Supermarket</option>
+                    <option value="pharmacy">Pharmacy</option>
+                    <option value="restaurant">Restaurant / Food</option>
+                    <option value="fashion">Fashion / Boutique</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="wholesale">Wholesale / Distribution</option>
+                    <option value="other">Other</option>
+                  </select>
                 </div>
               </>
             )}
