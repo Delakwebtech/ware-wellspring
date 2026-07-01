@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Building2, Pencil, Plus } from "lucide-react";
+import { Building2, Pencil, Plus, CheckCircle2 } from "lucide-react";
 import AppShell from "@/components/app/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/stores")({
@@ -24,6 +25,10 @@ type StoreRow = {
   address: string | null;
   logo: string | null;
   legacy_id: number | null;
+  status: string | null;
+  owner_email: string | null;
+  country: string | null;
+  business_type: string | null;
 };
 
 function StoresPage() {
