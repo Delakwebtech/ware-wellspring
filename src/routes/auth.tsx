@@ -28,6 +28,10 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [storeName, setStoreName] = useState("");
+  const [subdomain, setSubdomain] = useState("");
+  const [phone, setPhone] = useState("");
+  const [country, setCountry] = useState("");
+  const [businessType, setBusinessType] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const router = useRouter();
