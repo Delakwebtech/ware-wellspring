@@ -83,6 +83,21 @@ function StoresPage() {
     onError: (e: any) => toast.error(e.message ?? "Save failed"),
   });
 
+  const activateStore = useMutation({
+    mutationFn: async (s: StoreRow) => {
+      const { error } = await supabase.from("stores").update({ status: "active", activated_at: new Date().toISOString() }).eq("id", s.id);
+      if (error) throw error;
+      // Activate any pending subscription for this store
+      await supabase.from("store_subscriptions" as any).update({ status: "active" }).eq("store_id", s.id).eq("status", "pending");
+    },
+    onSuccess: (_data, s) => {
+      qc.invalidateQueries({ queryKey: ["all-stores"] });
+      const url = s.subdomain ? `https://${s.subdomain}.yourdomain.com` : window.location.origin;
+      toast.success(`Activated. Login URL: ${url}`);
+    },
+    onError: (e: any) => toast.error(e.message ?? "Activate failed"),
+  });
+
   if (isSuper === false) {
     return (
       <AppShell>
@@ -109,9 +124,9 @@ function StoresPage() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Subdomain</TableHead>
-              <TableHead>Currency</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead className="w-16"></TableHead>
+              <TableHead>Owner</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -121,13 +136,23 @@ function StoresPage() {
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
                     {s.logo ? <img src={s.logo} alt="" className="h-8 w-8 rounded object-cover" /> : <div className="h-8 w-8 rounded bg-muted" />}
-                    {s.name}
+                    <div>
+                      <div>{s.name}</div>
+                      <div className="text-xs text-muted-foreground">{s.country ?? ""} {s.business_type ? `· ${s.business_type}` : ""}</div>
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell className="text-muted-foreground">{s.subdomain ?? "—"}</TableCell>
-                <TableCell>{s.currency}</TableCell>
-                <TableCell className="text-muted-foreground">{s.phone ?? "—"}</TableCell>
+                <TableCell className="text-muted-foreground text-sm">{s.owner_email ?? "—"}</TableCell>
                 <TableCell>
+                  <Badge variant={s.status === "active" ? "default" : s.status === "suspended" ? "destructive" : "secondary"}>{s.status ?? "active"}</Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  {s.status === "pending" && (
+                    <Button size="sm" variant="outline" className="mr-1" onClick={() => activateStore.mutate(s)}>
+                      <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Activate
+                    </Button>
+                  )}
                   <Button variant="ghost" size="icon" onClick={() => setEditing(s)}><Pencil className="h-4 w-4" /></Button>
                 </TableCell>
               </TableRow>
@@ -135,6 +160,7 @@ function StoresPage() {
           </TableBody>
         </Table>
       </div>
+
 
       <StoreDialog
         open={creating || !!editing}
