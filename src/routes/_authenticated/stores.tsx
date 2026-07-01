@@ -52,7 +52,7 @@ function StoresPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("stores")
-        .select("id, name, subdomain, currency, phone, address, logo, legacy_id")
+        .select("id, name, subdomain, currency, phone, address, logo, legacy_id, status, owner_email, country, business_type")
         .order("created_at", { ascending: true });
       if (error) throw error;
       return (data ?? []) as StoreRow[];
